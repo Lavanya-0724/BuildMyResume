@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Resume Editor</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- html2pdf.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #0ea5e9;
+            --sidebar-bg: #0ea5e9;
+            --sidebar-text: #fff;
+            --accent-color: #fbbf24;
+            --section-bg: #f1f5f9;
+            --text-color: #1e293b;
+        }
+        body {
+            font-family: 'Montserrat', 'Inter', sans-serif;
+            color: var(--text-color);
+            background-color: #f8fafc;
+        }
+        .editor-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+            padding: 20px;
+            height: 100vh;
+        }
+        .sidebar {
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 24px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .sidebar label, .sidebar h4, .sidebar h3 {
+            color: var(--sidebar-text);
+        }
+        .sidebar input, .sidebar textarea, .sidebar select {
+            background: #fff;
+            color: #222;
+            border: none;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .sidebar .btn {
+            background: var(--accent-color);
+            color: #222;
+            border: none;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .sidebar .btn:hover {
+            background: #f59e42;
+        }
+        .resume-preview {
+            background: white;
+            padding: 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            overflow-y: auto;
+        }
+        .resume-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .resume-sidebar {
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            min-height: 100%;
+        }
+        .resume-sidebar .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #fff;
+            object-fit: cover;
+            margin-bottom: 24px;
+        }
+        .resume-sidebar .contact-info {
+            margin-bottom: 32px;
+        }
+        .resume-sidebar .contact-item {
+            font-size: 0.98rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .resume-sidebar .contact-item i {
+            margin-right: 8px;
+        }
+        .resume-sidebar .skills-list {
+            margin-top: 24px;
+        }
+        .resume-sidebar .skill-item {
+            margin-bottom: 12px;
+        }
+        .resume-sidebar .skill-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .resume-sidebar .skill-level {
+            height: 100%;
+            background: var(--accent-color);
+            border-radius: 3px;
+        }
+        .resume-main {
+            padding: 48px 40px;
+            background: #fff;
+        }
+        .resume-main .header {
+            border-bottom: 4px solid var(--primary-color);
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+        }
+        .resume-main .name {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        .resume-main .title {
+            font-size: 1.1rem;
+            color: #334155;
+            margin: 8px 0 0 0;
+            font-weight: 500;
+        }
+        .resume-main .section {
+            margin-bottom: 32px;
+        }
+        .resume-main .section-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-left: 6px solid var(--accent-color);
+            padding-left: 12px;
+        }
+        .resume-main .section p, .resume-main .section ul {
+            margin: 0;
+            font-size: 1rem;
+            color: #222;
+        }
+        .resume-main .experience-item, .resume-main .education-item, .resume-main .project-item {
+            margin-bottom: 18px;
+        }
+        .resume-main .experience-item h4, .resume-main .education-item h4, .resume-main .project-item h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 2px;
+        }
+        .resume-main .experience-item .date, .resume-main .education-item .date {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        @media print {
+            body, html {
+                background: white !important;
+            }
+            .editor-container, .sidebar, .editor-heading, h3.mb-4 {
+                display: none !important;
+            }
+            .resume-preview, .resume-container {
+                display: block !important;
+                position: static !important;
+                margin: 0 auto !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: 900px !important;
+                background: white !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="editor-container">
+        <!-- Sidebar Editor -->
+        <div class="sidebar">
+            <h3 class="mb-4">Modern Resume Editor</h3>
+            <!-- Avatar Upload -->
+            <div class="section-editor">
+                <h4 class="section-title">Profile Image</h4>
+                <input type="file" id="avatar-upload" accept="image/*">
+            </div>
+            <!-- Personal Information -->
+            <div class="section-editor">
+                <h4 class="section-title">Personal Information</h4>
+                <input type="text" class="form-control" id="name" placeholder="Full Name">
+                <input type="text" class="form-control" id="title" placeholder="Professional Title">
+                <input type="email" class="form-control" id="email" placeholder="Email">
+                <input type="tel" class="form-control" id="phone" placeholder="Phone">
+                <input type="text" class="form-control" id="location" placeholder="Location">
+                <input type="text" class="form-control" id="linkedin" placeholder="LinkedIn URL">
+            </div>
+            <!-- Skills -->
+            <div class="section-editor">
+                <h4 class="section-title">Skills</h4>
+                <input type="text" class="form-control" id="skill-name" placeholder="Skill Name">
+                <input type="range" class="form-control" id="skill-level" min="0" max="100" value="50">
+                <button class="btn btn-outline-light w-100" onclick="addSkill()">Add Skill</button>
+                <div id="skills-list" class="mt-2"></div>
+            </div>
+        </div>
+        <!-- Resume Preview -->
+        <div class="resume-preview">
+            <div class="resume-container print_area">
+                <div class="resume-sidebar">
+                    <img src="images/profile.jpg" alt="Avatar" class="avatar" id="preview-avatar">
+                    <div class="contact-info">
+                        <div class="contact-item"><i class="fas fa-envelope"></i> <span id="preview-email"></span></div>
+                        <div class="contact-item"><i class="fas fa-phone"></i> <span id="preview-phone"></span></div>
+                        <div class="contact-item"><i class="fas fa-map-marker-alt"></i> <span id="preview-location"></span></div>
+                        <div class="contact-item"><i class="fab fa-linkedin"></i> <span id="preview-linkedin"></span></div>
+                    </div>
+                    <div class="skills-list" id="preview-skills"></div>
+                </div>
+                <div class="resume-main">
+                    <div class="header">
+                        <h1 class="name" id="preview-name">Your Name</h1>
+                        <p class="title" id="preview-title">Professional Title</p>
+                    </div>
+                    <div class="section">
+                        <h2 class="section-title">Professional Summary</h2>
+                        <p id="preview-summary"></p>
+                    </div>
+                    <div class="section">
+                        <h2 class="section-title">Work Experience</h2>
+                        <div id="preview-experience"></div>
+                    </div>
+                    <div class="section">
+                        <h2 class="section-title">Education</h2>
+                        <div id="preview-education"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Avatar upload
+        document.getElementById('avatar-upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('preview-avatar').src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+        // Update preview when input changes
+        document.querySelectorAll('input, textarea').forEach(element => {
+            element.addEventListener('input', updatePreview);
+        });
+        function updatePreview() {
+            document.getElementById('preview-name').textContent = document.getElementById('name').value || 'Your Name';
+            document.getElementById('preview-title').textContent = document.getElementById('title').value || 'Professional Title';
+            document.getElementById('preview-email').textContent = document.getElementById('email').value;
+            document.getElementById('preview-phone').textContent = document.getElementById('phone').value;
+            document.getElementById('preview-location').textContent = document.getElementById('location').value;
+            document.getElementById('preview-linkedin').textContent = document.getElementById('linkedin').value;
+            document.getElementById('preview-summary').textContent = document.getElementById('summary').value;
+            // Skills
+            const skillsList = document.getElementById('preview-skills');
+            skillsList.innerHTML = '';
+            document.querySelectorAll('#skills-list .skill-item').forEach(item => {
+                skillsList.appendChild(item.cloneNode(true));
+            });
+            // Experience
+            const experienceContainer = document.getElementById('preview-experience');
+            experienceContainer.innerHTML = '';
+            document.querySelectorAll('.experience-item-editor').forEach(editor => {
+                const title = editor.querySelector('input[placeholder="Job Title"]').value;
+                const company = editor.querySelector('input[placeholder="Company"]').value;
+                const date = editor.querySelector('input[placeholder="Date Range"]').value;
+                const description = editor.querySelector('textarea').value;
+                if (title || company || date || description) {
+                    const experienceItem = document.createElement('div');
+                    experienceItem.className = 'experience-item';
+                    experienceItem.innerHTML = `
+                        <h4>${title}</h4>
+                        <div class="date">${date}</div>
+                        <div><strong>${company}</strong></div>
+                        <p>${description}</p>
+                    `;
+                    experienceContainer.appendChild(experienceItem);
+                }
+            });
+            // Education
+            const educationContainer = document.getElementById('preview-education');
+            educationContainer.innerHTML = '';
+            document.querySelectorAll('.education-item-editor').forEach(editor => {
+                const degree = editor.querySelector('input[placeholder="Degree"]').value;
+                const school = editor.querySelector('input[placeholder="School"]').value;
+                const date = editor.querySelector('input[placeholder="Date Range"]').value;
+                if (degree || school || date) {
+                    const educationItem = document.createElement('div');
+                    educationItem.className = 'education-item';
+                    educationItem.innerHTML = `
+                        <h4>${degree}</h4>
+                        <div class="date">${date}</div>
+                        <div><strong>${school}</strong></div>
+                    `;
+                    educationContainer.appendChild(educationItem);
+                }
+            });
+        }
+        function addSkill() {
+            const skillName = document.getElementById('skill-name').value.trim();
+            const skillLevel = document.getElementById('skill-level').value;
+            if (skillName) {
+                const skillsList = document.getElementById('skills-list');
+                const skillItem = document.createElement('div');
+                skillItem.className = 'skill-item';
+                skillItem.innerHTML = `
+                    <div class="skill-name">${skillName}</div>
+                    <div class="skill-bar">
+                        <div class="skill-level" style="width: ${skillLevel}%"></div>
+                    </div>
+                `;
+                skillsList.appendChild(skillItem);
+                document.getElementById('skill-name').value = '';
+                document.getElementById('skill-level').value = '50';
+            }
+        }
+        function addExperience() {
+            const experienceSection = document.getElementById('experience-section');
+            const newExperience = document.createElement('div');
+            newExperience.className = 'experience-item-editor mt-3';
+            newExperience.innerHTML = `
+                <input type="text" class="form-control" placeholder="Job Title">
+                <input type="text" class="form-control" placeholder="Company">
+                <input type="text" class="form-control" placeholder="Date Range">
+                <textarea class="form-control" rows="3" placeholder="Responsibilities and achievements"></textarea>
+                <button class="remove-section-btn" onclick="this.parentElement.remove()">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
+            `;
+            experienceSection.insertBefore(newExperience, experienceSection.lastElementChild);
+        }
+        function addEducation() {
+            const educationSection = document.getElementById('education-section');
+            const newEducation = document.createElement('div');
+            newEducation.className = 'education-item-editor mt-3';
+            newEducation.innerHTML = `
+                <input type="text" class="form-control" placeholder="Degree">
+                <input type="text" class="form-control" placeholder="School">
+                <input type="text" class="form-control" placeholder="Date Range">
+                <button class="remove-section-btn" onclick="this.parentElement.remove()">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
+            `;
+            educationSection.insertBefore(newEducation, educationSection.lastElementChild);
+        }
+        // Print CV function
+        function printCV() {
+            const printContents = document.querySelector('.resume-preview').innerHTML;
+            const originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            location.reload();
+        }
+    </script>
+</body>
+</html> 

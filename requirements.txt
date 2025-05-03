@@ -1,0 +1,6 @@
+# External Dependencies
+bootstrap==5.3.0
+font-awesome==6.0.0
+
+# Note: These dependencies are loaded via CDN in the HTML files
+# No local installation is required 
