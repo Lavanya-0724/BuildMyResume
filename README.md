@@ -48,6 +48,4 @@ BuildMyResume is a modern, user-friendly resume builder that helps you create pr
 - Bootstrap 5.3.0
 - Font Awesome 6.0.0
 
-## License
 
-This project is open source and available for personal and commercial use.
